@@ -268,7 +268,14 @@ georges_pereira: {
 	statut:"vivant",
 	birthDate:"1966-05-14",
 	sexe:"H",
-	parent1:"firmino_pereira", parent2:"maria_inacio"
+	parent1:"firmino_pereira", parent2:"maria_inacio",
+	spouse:"cecile_di-giovanni"
+},
+"cecile_di-giovanni":{
+	firstName:"Cécile", lstName:"Di Giovanni",
+	statut:"vivant",
+	birthDate:"1966-03-08",
+	sexe:"F"
 },
 michele_pereira: {
 	firstName:"Michèle", lastName:"Pereira", maidenName:"Aldeguer",
@@ -696,34 +703,23 @@ joe_jr_ferreira: {
 function buildFamilies(people) {
   const groups = {};
 
+/*
+    Mariages déclarés via le champ "spouse", même sans enfant :
+    ça crée une famille "vide" (aucun enfant) mais le couple
+    s'affiche bien relié sur l'arbre.
+  */
   Object.entries(people).forEach(([id, info]) => {
-    const p1 = info.parent1 || null;
-    const p2 = info.parent2 || null;
+    if (!info.spouse || !people[info.spouse]) return;
 
-    if (!p1 && !p2) return;
-
-    const key = [p1, p2]
-      .filter(Boolean)
-      .sort()
-      .join("__");
+    const key = [id, info.spouse].sort().join("__");
 
     if (!groups[key]) {
-      /*
-        On garde l'ordre des parents tel qu'il est renseigné
-        dans parent1 et parent2.
-
-        Aucun ordre n'est imposé selon le sexe.
-      */
-      const parents = [p1, p2].filter(Boolean);
-
       groups[key] = {
         id: "fam_" + key,
-        parents,
+        parents: [id, info.spouse],
         children: []
       };
     }
-
-    groups[key].children.push(id);
   });
 
   return Object.values(groups);
