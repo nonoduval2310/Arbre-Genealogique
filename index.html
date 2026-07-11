@@ -272,7 +272,7 @@ georges_pereira: {
 	spouse:"cecile_di-giovanni"
 },
 "cecile_di-giovanni":{
-	firstName:"Cécile", lstName:"Di Giovanni",
+	firstName:"Cécile", lastName:"Di Giovanni",
 	statut:"vivant",
 	birthDate:"1966-03-08",
 	sexe:"F"
@@ -703,7 +703,31 @@ joe_jr_ferreira: {
 function buildFamilies(people) {
   const groups = {};
 
-/*
+  Object.entries(people).forEach(([id, info]) => {
+    const p1 = info.parent1 || null;
+    const p2 = info.parent2 || null;
+
+    if (!p1 && !p2) return;
+
+    const key = [p1, p2]
+      .filter(Boolean)
+      .sort()
+      .join("__");
+
+    if (!groups[key]) {
+      const parents = [p1, p2].filter(Boolean);
+
+      groups[key] = {
+        id: "fam_" + key,
+        parents,
+        children: []
+      };
+    }
+
+    groups[key].children.push(id);
+  });
+
+  /*
     Mariages déclarés via le champ "spouse", même sans enfant :
     ça crée une famille "vide" (aucun enfant) mais le couple
     s'affiche bien relié sur l'arbre.
@@ -1130,15 +1154,16 @@ function getCardCoordinates(personId) {
 function drawFamilyLinks() {
   let svgHtml = "";
 
-  const layouts = FAMILIES
-    .filter(family => family.parents.length > 0 && family.children.length > 0)
+const layouts = FAMILIES
+    .filter(family => family.parents.length === 2 || (family.parents.length === 1 && family.children.length > 0))
     .map(family => {
       const parents = family.parents.filter(parentId => cardElements[parentId]);
       const children = family.children
         .filter(childId => cardElements[childId])
         .sort((a, b) => positions[a].x - positions[b].x);
 
-      if (!parents.length || !children.length) return null;
+if (!parents.length) return null;
+      if (parents.length === 1 && !children.length) return null;
 
       const parentCoords = parents.map(getCardCoordinates);
       const childCoords = children.map(getCardCoordinates);
@@ -1177,17 +1202,25 @@ function drawFamilyLinks() {
           fill="none" stroke="var(--line)" stroke-width="1.6" stroke-linecap="round"
         />
         <circle cx="${familyCenterX}" cy="${curveMidY}" r="3.5" fill="var(--accent)" />
-        <path d="M ${familyCenterX} ${curveMidY} L ${familyCenterX} ${parentJoinY}" fill="none" stroke="var(--line)" stroke-width="1.6" stroke-linecap="round" />
       `;
+      if (childCoords.length > 0) {
+        svgHtml += `
+          <path d="M ${familyCenterX} ${curveMidY} L ${familyCenterX} ${parentJoinY}" fill="none" stroke="var(--line)" stroke-width="1.6" stroke-linecap="round" />
+        `;
+      }
     } else {
       svgHtml += `
         <path d="M ${familyCenterX} ${parentCoords[0].bottomAnchor} L ${familyCenterX} ${parentJoinY}" fill="none" stroke="var(--line)" stroke-width="1.6" stroke-linecap="round" />
       `;
     }
 
-    // chaque enfant reçoit SA PROPRE courbe individuelle depuis le point
+// chaque enfant reçoit SA PROPRE courbe individuelle depuis le point
     // de jonction familial. Plus aucune barre horizontale partagée qui
     // pourrait laisser croire que deux familles différentes sont reliées.
+    // S'il n'y a pas d'enfant (mariage sans descendance), on s'arrête
+    // au trait de couple, sans rien dessiner en dessous.
+    if (childCoords.length === 0) return;
+
     childCoords.forEach(child => {
       const midY = (parentJoinY + child.topAnchor) / 2;
       svgHtml += `
