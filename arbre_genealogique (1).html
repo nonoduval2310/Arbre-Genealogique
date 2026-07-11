@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Arbre généalogique</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0d12;
+    --panel:#12141b;
+    --card:#161922;
+    --card-border:#262b38;
+    --line:#3a4050;
+    --text:#eef1f6;
+    --text-dim:#8b92a5;
+    --accent:#d1a15c;
+    --accent-h:#5b8def;
+    --accent-f:#e35d8a;
+    --accent-default:#6b7280;
+    --alive:#3ecf8e;
+    --deceased:#5b6472;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; height:100%; background:var(--bg); font-family:'Manrope',sans-serif; color:var(--text); overflow:hidden; }
+
+  #header{
+    position:absolute; top:0; left:0; right:0; z-index:10;
+    padding:28px 36px 18px 36px;
+    background:linear-gradient(180deg, var(--bg) 55%, transparent);
+    pointer-events:none;
+  }
+  #header h1{
+    font-family:'Fraunces',serif; font-weight:600; font-size:26px; margin:0 0 4px 0;
+    letter-spacing:0.2px;
+  }
+  #header p{ margin:0; color:var(--text-dim); font-size:13.5px; }
+
+  #stage{
+    position:absolute; inset:0; cursor:grab;
+  }
+  #stage.dragging{ cursor:grabbing; }
+
+  #viewport{
+    position:absolute; top:0; left:0; transform-origin:0 0;
+    will-change: transform;
+  }
+
+  .gen-label{
+    position:absolute; left:-190px; width:170px; text-align:right;
+    font-size:11px; letter-spacing:1.5px; text-transform:uppercase;
+    color:var(--accent); font-weight:600; opacity:0.75;
+  }
+  .gen-line{
+    position:absolute; left:0; height:1px; background:linear-gradient(90deg, var(--accent) 0%, transparent 70%);
+    opacity:0.15;
+  }
+
+  .card{
+    position:absolute; width:172px;
+    background:var(--card); border:1.5px solid var(--card-border); border-radius:12px;
+    padding:10px 12px 10px 14px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.35);
+    transition: transform 0.15s;
+  }
+
+#cards{
+  position:relative;
+  z-index:2;
+}
+
+#links{
+  z-index:1;
+}
+
+  .card:hover{ transform:translateY(-1px); }
+  .card.alive{ border-color:var(--alive); }
+  .card.deceased{ border-color:var(--deceased); }
+  .card::before{
+    content:""; position:absolute; left:0; top:10px; bottom:10px; width:4px; border-radius:3px;
+  }
+  .card.sexe-H::before{ background:var(--accent-h); }
+  .card.sexe-F::before{ background:var(--accent-f); }
+  .card.sexe-default::before{ background:var(--accent-default); }
+  .card .nom{ font-weight:700; font-size:14px; line-height:1.25; }
+  .card .dates{ margin-top:3px; font-size:11.5px; color:var(--text-dim); }
+  .card .tag{
+    display:inline-block; margin-top:6px; font-size:10px; padding:2px 7px;
+    border-radius:20px; background:#1d212c; color:var(--text-dim); border:1px solid var(--card-border);
+  }
+
+  svg#links{ position:absolute; top:0; left:0; overflow:visible; }
+
+  #controls{
+    position:absolute; left:20px; bottom:20px; z-index:10;
+    display:flex; flex-direction:column; gap:6px;
+  }
+  #controls button{
+    width:34px; height:34px; border-radius:9px; border:1px solid var(--card-border);
+    background:var(--panel); color:var(--text); font-size:16px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+  #controls button:hover{ background:#1b1f29; }
+
+  #legend{
+    position:absolute; right:20px; bottom:20px; z-index:10;
+    background:var(--panel); border:1px solid var(--card-border); border-radius:10px;
+    padding:10px 14px; font-size:11.5px; color:var(--text-dim);
+    display:flex; gap:14px;
+  }
+  #legend span{ display:flex; align-items:center; gap:6px; }
+  #legend i{ width:9px; height:9px; border-radius:50%; display:inline-block; }
+
+#personModalOverlay{
+  position:fixed; inset:0; background:rgba(5,6,9,0.65);
+  display:none; align-items:center; justify-content:center; z-index:100;
+}
+#personModalOverlay.visible{ display:flex; }
+#personModal{
+  position:relative; width:320px; max-width:90vw;
+  background:var(--panel); border:1px solid var(--card-border); border-radius:14px;
+  padding:22px 22px 18px; box-shadow:0 20px 50px rgba(0,0,0,0.5);
+}
+#personModalClose{
+  position:absolute; top:12px; right:12px; width:26px; height:26px;
+  border-radius:8px; border:1px solid var(--card-border); background:#1b1f29;
+  color:var(--text-dim); cursor:pointer; font-size:13px; display:flex; align-items:center; justify-content:center;
+}
+#personModalClose:hover{ color:var(--text); background:#232838; }
+#personModal h2{
+  font-family:'Fraunces',serif; font-weight:600; font-size:19px; margin:0 0 4px 0; color:var(--text);
+}
+#personModal .modal-maiden{ color:var(--text-dim); font-style:italic; font-weight:400; }
+#personModal .modal-sub{ font-size:12.5px; color:var(--text-dim); margin-bottom:14px; }
+#personModal .modal-row{ margin-bottom:10px; }
+#personModal .modal-label{ font-size:10.5px; text-transform:uppercase; letter-spacing:1px; color:var(--accent); font-weight:600; margin-bottom:3px; }
+#personModal .modal-value{ font-size:13.5px; color:var(--text); }
+#personModal .modal-link{
+  display:inline-block; margin:2px 6px 2px 0; padding:3px 10px; border-radius:20px;
+  background:#1d212c; border:1px solid var(--card-border); color:var(--text); font-size:12px;
+  cursor:pointer;
+}
+#personModal .modal-link:hover{ background:#262c3a; border-color:var(--accent); }
+
+</style>
+</head>
+<body>
+
+<div id="header">
+  <h1>Arbre généalogique</h1>
+  <p>Famille Duval — Pereira</p>
+</div>
+
+<div id="stage">
+  <div id="viewport">
+    <svg id="links"></svg>
+    <div id="labels"></div>
+    <div id="cards"></div>
+  </div>
+</div>
+
+<div id="controls">
+  <button id="zoomIn" title="Zoomer">+</button>
+  <button id="zoomOut" title="Dézoomer">−</button>
+  <button id="fit" title="Ajuster à l'écran">⤢</button>
+</div>
+
+<div id="legend">
+  <span><i style="background:var(--accent-h)"></i>Homme</span>
+  <span><i style="background:var(--accent-f)"></i>Femme</span>
+  <span><i style="background:var(--alive)"></i>En vie</span>
+  <span><i style="background:var(--deceased)"></i>Décédé(e)</span>
+</div>
+
+<div id="personModalOverlay">
+  <div id="personModal">
+    <button id="personModalClose" title="Fermer">✕</button>
+    <div id="personModalContent"></div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   1) DONNÉES — modifie cette section avec ta famille
+   ============================================================
+   PEOPLE : un id unique -> infos de la personne
+   FAMILIES : une "famille" = un ou deux parents + leurs enfants
+   (si un enfant se marie et a lui-même des enfants, crée une
+   nouvelle entrée FAMILIES pour lui, avec son/sa conjoint(e))
+*/
+const PEOPLE = {
+  // id : basé sur le prénom + nom de la personne, en minuscules, sans
+  // accents ni espaces (underscore à la place). Exemple pour
+  // "Jean Dupont" -> jean_dupont. Si deux personnes ont le même
+  // prénom+nom, ajoute un chiffre (ex: jean_dupont_2).
+  //
+  // Champs :
+  //   firstName        : prénom usuel (obligatoire)
+  //   otherFirstNames   : autres prénoms, ex "Marie Odile" (optionnel)
+  //   lastName          : nom de famille (obligatoire)
+  //   birthDate         : "AAAA-MM-JJ" si tu connais le jour exact,
+  //                       ou juste "AAAA" si tu ne connais que l'année
+  //   deathDate         : même format que birthDate — laisse vide/absent
+  //                       si la personne est en vie
+  //   sexe              : "H" ou "F" (couleur de la barre à gauche)
+  //   parent1 / parent2 : id d'un parent déjà déclaré plus haut dans
+  //                       PEOPLE, ou null si inconnu. L'ordre entre
+  //                       parent1/parent2 n'a pas d'importance.
+noemie_duval: {
+	firstName:"Noémie", otherFirstNames:"Elisa", lastName:"Duval",
+	statut:"vivant",
+	birthDate:"2004-10-23",
+	sexe:"F",
+	parent1:"jean_duval", parent2:"anna_pereira"
+},
+evann_duval: {
+	firstName:"Evann", otherFirstNames:"Lilian", lastName:"Duval",
+	statut:"vivant",
+	birthDate:"2007-06-01",
+	sexe:"H",
+	parent1:"jean_duval", parent2:"anna_pereira"
+},
+gregory_duval: {
+	firstName:"Gregory", lastName:"Duval",
+	statut:"vivant",
+	birthDate:"1997-11-20",
+	sexe:"H",
+	parent1:"jean_duval", parent2:"myriam_boyer"
+},
+jean_duval: {
+	firstName:"Jean", otherFirstNames:"Robert, Daniel", lastName:"Duval",
+	statut:"vivant",
+	birthDate:"1970-04-15",
+	sexe:"H",
+	parent1:"jacques_duval", parent2:"joséphine_dewaele"
+},
+anna_pereira: {
+	firstName:"Anna", otherFirstNames:"Christina", lastName:"Pereira",
+	statut:"vivant",
+	birthDate:"1976-10-23",
+	sexe:"F",
+	parent1:"firmino_pereira", parent2:"maria_inacio"
+},
+paoline_pereira: {
+	firstName:"Paoline", otherFirstNames:"Alice", lastName:"Pereira",
+	statut:"vivant",
+	birthDate:"2001-05-01",
+	sexe:"F",
+	parent1:"georges_pereira", parent2:"michele_pereira"
+},
+maelys_pereira: {
+	firstName:"Maélys", lastName:"Pereira",
+	statut:"vivant",
+	birthDate:"1997-10-26",
+	sexe:"F",
+	parent1:"georges_pereira", parent2:"michele_pereira"
+},
+georges_pereira: {
+	firstName:"Georges", lastName:"Pereira",
+	statut:"vivant",
+	birthDate:"1968-03-07",
+	sexe:"H",
+	parent1:"firmino_pereira", parent2:"maria_inacio"
+},
+"jean-philippe_pereira": {
+	firstName:"Jean-Philippe", lastName:"Pereira",
+	statut:"vivant",
+	birthDate:"1966-05-14",
+	sexe:"H",
+	parent1:"firmino_pereira", parent2:"maria_inacio"
+},
+michele_pereira: {
+	firstName:"Michèle", lastName:"Pereira", maidenName:"Aldeguer",
+	statut:"vivant",
+	birthDate:"1970-08-10",
+	sexe:"F",
+	parent1:"gilbert_aldeguer", parent2:"simone_aldeguer"
+},
+pierre_aldeguer: {
+	firstName:"Pierre", lastName:"Aldeguer",
+	statut:"vivant",
+	sexe:"H",
+	parent1:"gilbert_aldeguer", parent2:"simone_aldeguer"
+},
+gilbert_aldeguer: {
+	firstName:"Gilbert", lastName:"Aldeguer",
+	statut:"vivant",
+	sexe:"H"
+},
+simone_aldeguer: {
+	firstName:"Simone", lastName:"Aldeguer",
+	statut:"vivant",
+	sexe:"F"
+},
+raphael_pereira: {
+	firstName:"Raphael", lastName:"Pereira",
+	statut:"vivant",
+	birthDate:"2003-09-20",
+	sexe:"H",
+	parent1:"jean-philippe_pereira", parent2:"valerie"
+},
+valerie: {
+	firstName:"Valerie",
+	statut:"vivant",
+	sexe:"F"
+},
+myriam_boyer: { 
+	firstName:"Myriam", lastName:"Boyer",
+	statut:"vivant",
+	sexe:"F"
+},
+jacques_duval: {
+	firstName:"Jacques", lastName:"Duval",
+	statut:"décédé",
+	sexe:"H"
+ },
+joséphine_dewaele: {
+	firstName:"Joséphine", lastName:"Dewaele",
+	statut:"vivant",
+	birthDate:"1942-10-20",
+	sexe:"F"
+},
+firmino_pereira: {
+	firstName:"Firmino", lastName:"Correia Pereira",
+	statut:"décédé",
+	sexe:"H"
+},
+hannibal_pereira: {
+	firstName:"Hannibal", lastName:"Correia Pereira",
+	statut:"décédé",
+	sexe:"H"
+},
+victor_pereira: {
+	firstName:"Victor", lastName:"Pereira",
+	statut:"vivant",
+	sexe:"H",
+	parent1:"hannibal_pereira"
+},
+fatinha_pereira: {
+	firstName:"Fatinha", lastName:"Pereira",
+	statut:"vivant",
+	sexe:"F",
+	parent1:"hannibal_pereira"
+},
+mario_pereira: {
+	firstName:"Mario", lastName:"Correia Pereira",
+	statut:"vivant",
+	sexe:"H"
+},
+celia_pereira: {
+	firstName:"Celia", lastName:"Pereira",
+	statut:"vivant",
+	sexe:"F"
+},
+elyo_pereira: {
+	firstName:"Elyo", lastName:"Pereira",
+	statut:"vivant",
+	sexe:"H",
+	parent1:"mario_pereira", parent2:"celia_pereira"
+},
+maria_inacio: {
+	firstName:"Maria",  otherFirstNames: "Manuela", lastName:"Pereira",  maidenName: "Inacio Dos Reis",
+	statut:"vivant",
+	birthDate:"1942-07-28",
+	sexe:"F",
+	parent1:"francisco_dos-reis", parent2:"maria_do-carmo_inacio"
+},
+"maria_do-carmo_inacio": {
+	firstName:"Maria", lastName:"Do Carmo Inacio",
+	statut:"décédé",
+	sexe:"F"
+},
+"francisco_dos-reis": {
+	firstName:"Francisco", lastName:"Dos Reis",
+	statut:"décédé",
+	sexe:"H"
+},
+"norata_dos-reis": {
+	firstName:"Norata", lastName:"Patricio",  maidenName: "Inacio Dos Reis",
+	statut:"décédé",
+	sexe:"F",
+	parent1:"francisco_dos-reis", parent2:"maria_do-carmo_inacio"
+},
+"hortense_dos-reis": {
+	firstName:"Hortense", lastName:"Adriao",  maidenName: "Inacio Dos Reis",
+	statut:"décédé",
+	sexe:"F",
+	parent1:"francisco_dos-reis", parent2:"maria_do-carmo_inacio"
+},
+"lizette_dos-reis": {
+	firstName:"Lizette", lastName:"Martins",  maidenName: "Inacio Dos Reis",
+	statut:"décédé",
+	sexe:"F",
+	parent1:"francisco_dos-reis", parent2:"maria_do-carmo_inacio"
+},
+ricardo_martins: {
+	firstName:"Ricardo", lastName:"Martins",
+	statut:"vivant",
+	sexe:"H",
+	parent1:"lizette_dos-reis"
+},
+mickaël_martins: {
+	firstName:"Mickaël", lastName:"Martins",
+	statut:"vivant",
+	sexe:"H",
+	parent1:"ricardo_martins"
+},
+inès_martins: {
+	firstName:"Inès", lastName:"Martins",
+	statut:"vivant",
+	sexe:"F",
+	parent1:"mickaël_martins"
+},
+marina_martins: {
+	firstName:"Marina", lastName:"Martins",
+	statut:"vivant",
+	sexe:"F",
+	parent1:"ricardo_martins"
+},
+idalecio_martins: {
+	firstName:"Idalecio", lastName:"Martins",
+	statut:"vivant",
+	sexe:"H",
+	parent1:"lizette_dos-reis"
+},
+kevin_martins: {
+	firstName:"Kévin", lastName:"Martins",
+	statut:"vivant",
+	sexe:"H",
+	parent1:"idalecio_martins"
+},
+jordan_martins: {
+	firstName:"Jordan", lastName:"Martins",
+	statut:"vivant",
+	sexe:"H",
+	parent1:"idalecio_martins"
+},
+lyana_martins: {
+	firstName:"Lyana", lastName:"Martins",
+	statut:"vivant",
+	sexe:"F",
+	parent1:"jordan_martins"
+},
+michel_martins: {
+	firstName:"Michel", lastName:"Martins",
+	statut:"vivant",
+	sexe:"H",
+	parent1:"lizette_dos-reis"
+},
+louka_martins: {
+	firstName:"Louka", lastName:"Martins",
+	statut:"vivant",
+	sexe:"H",
+	parent1:"michel_martins"
+},
+oceane_martins: {
+	firstName:"Océane", lastName:"Martins",
+	statut:"vivant",
+	sexe:"H",
+	parent1:"michel_martins"
+},
+"rosinda_dos-reis": {
+	firstName:"Rosinda", lastName:"Adriao",  maidenName: "Inacio Dos Reis",
+	statut:"décédé",
+	sexe:"F",
+	parent1:"francisco_dos-reis", parent2:"maria_do-carmo_inacio"
+},
+"nelia_da-silva": {
+	firstName:"Nelia", lastName:"Da Silva",  maidenName: "Adriao",
+	statut:"vivant",
+	sexe:"F",
+	parent1:"rosinda_dos-reis"
+},
+"thibaud_da-silva": {
+	firstName:"Thibaud", lastName:"Da Silva",
+	statut:"vivant",
+	sexe:"H",
+	parent1:"nelia_da-silva"
+},
+"laurine_da-silva": {
+	firstName:"Laurine", lastName:"Da Silva",
+	statut:"vivant",
+	sexe:"F",
+	parent1:"nelia_da-silva"
+},
+victor_adriao: {
+	firstName:"Victor", lastName: "Adriao",
+	statut:"vivant",
+	sexe:"H",
+	parent1:"rosinda_dos-reis"
+},
+thomas_adriao: {
+	firstName:"Thomas", lastName: "Adriao",
+	statut:"vivant",
+	sexe:"H",
+	parent1:"victor_adriao"
+},
+"analidia_de-brito": {
+	firstName:"Norata", lastName:"De Brito",  maidenName: "Patricio",
+	statut:"vivant",
+	sexe:"F",
+	parent1:"norata_dos-reis"
+},
+"roger_de-brito": {
+	firstName:"Roger", lastName:"De Brito",
+	statut:"vivant",
+	sexe:"H"
+},
+"thierry_de-brito": {
+	firstName:"Thierry", lastName:"De Brito",
+	statut:"vivant",
+	sexe:"H",
+	parent1:"analidia_de-brito", parent2:"roger_de-brito"
+},
+"matteo_de-brito": {
+	firstName:"Matteo", lastName:"De Brito",
+	statut:"vivant",
+	sexe:"H",
+	parent1:"thierry_de-brito"
+},
+"clara_de-brito": {
+	firstName:"Clara", lastName:"De Brito",
+	statut:"vivant",
+	sexe:"F",
+	parent1:"thierry_de-brito"
+},
+"nicolas_de-brito": {
+	firstName:"Nicolas", lastName:"De Brito",
+	statut:"vivant",
+	sexe:"H",
+	parent1:"analidia_de-brito", parent2:"roger_de-brito"
+},
+"elisa_de-brito": {
+	firstName:"Elisa", lastName:"De Brito",
+	statut:"vivant",
+	sexe:"F",
+	parent1:"nicolas_de-brito"
+},
+"andrea_de-brito": {
+	firstName:"Andréa", lastName:"De Brito",
+	statut:"vivant",
+	sexe:"F",
+	parent1:"nicolas_de-brito"
+},
+"fabien_de-brito": {
+	firstName:"Fabien", lastName:"De Brito",
+	statut:"vivant",
+	sexe:"H",
+	parent1:"analidia_de-brito", parent2:"roger_de-brito"
+},
+"cassie_de-brito": {
+	firstName:"Cassie", lastName:"De Brito",
+	statut:"vivant",
+	sexe:"F",
+	parent1:"fabien_de-brito"
+},
+"mila_de-brito": {
+	firstName:"Mila", lastName:"De Brito",
+	statut:"vivant",
+	sexe:"F",
+	parent1:"fabien_de-brito"
+},
+"johnathan_de-brito": {
+	firstName:"Johnathan", lastName:"De Brito",
+	statut:"vivant",
+	sexe:"H",
+	parent1:"analidia_de-brito", parent2:"roger_de-brito"
+},
+"loen_de-brito": {
+	firstName:"Loën", lastName:"De Brito",
+	statut:"vivant",
+	sexe:"H",
+	parent1:"johnathan_de-brito"
+},
+"evan_de-brito": {
+	firstName:"Evan", lastName:"De Brito",
+	statut:"vivant",
+	sexe:"H",
+	parent1:"johnathan_de-brito"
+},
+"elio_de-brito": {
+	firstName:"Elio", lastName:"De Brito",
+	statut:"vivant",
+	sexe:"H",
+	parent1:"johnathan_de-brito"
+},
+juvenalia_patricio: {
+	firstName:"Juvenalia",  lastName: "Patricio",
+	statut:"vivant",
+	sexe:"F",
+	parent1:"norata_dos-reis"
+},
+edouard_patricio: {
+	firstName:"Edouard", 
+	statut:"vivant",
+	sexe:"H",
+	parent1:"juvenalia_patricio"
+},
+acacio_patricio: {
+	firstName:"Acacio", lastName: "Patricio",
+	statut:"vivant",
+	sexe:"H",
+	parent1:"norata_dos-reis"
+},
+paulo_patricio: {
+	firstName:"Paulo", lastName: "Patricio",
+	statut:"vivant",
+	sexe:"H",
+	parent1:"acacio_patricio"
+},
+alain_patricio: {
+	firstName:"Alain", lastName: "Patricio",
+	statut:"vivant",
+	sexe:"H",
+	parent1:"acacio_patricio"
+},
+sylvie_patricio: {
+	firstName:"Sylvie", maidenName: "Patricio",
+	statut:"vivant",
+	sexe:"F",
+	parent1:"acacio_patricio"
+},
+carlos_adriao: {
+	firstName:"Carlos", lastName:"Adriao",
+	statut:"vivant",
+	sexe:"H",
+	parent1:"hortense_dos-reis"
+},
+jenny_adriao: {
+	firstName:"Jenny", lastName:"Adriao",
+	statut:"vivant",
+	sexe:"F",
+	parent1:"carlos_adriao"
+},
+jessy_adriao: {
+	firstName:"Jessy", lastName:"Adriao",
+	statut:"vivant",
+	sexe:"F",
+	parent1:"carlos_adriao"
+},
+maria_ferreira: {
+	firstName:"Maria", lastName:"Ferreira", maidenName:"Adriao",
+	statut:"vivant",
+	sexe:"F",
+	parent1:"hortense_dos-reis"
+},
+joe_ferreira: {
+	firstName:"Joe", lastName:"Ferreira",
+	statut:"vivant",
+	sexe:"H"
+},
+leslie_ferreira: {
+	firstName:"Leslie", lastName:"Ferreira",
+	statut:"vivant",
+	sexe:"F",
+	parent1:"maria_ferreira", parent2:"joe_ferreira"
+},
+joe_jr_ferreira: {
+	firstName:"Joe Jr.", lastName:"Ferreira",
+	statut:"vivant",
+	sexe:"H",
+	parent1:"maria_ferreira", parent2:"joe_ferreira"
+},
+"zeis_dos-reis": {
+	firstName:"Zeis", lastName:"Dos Reis",
+	statut:"décédé",
+	sexe:"H",
+	parent1:"francisco_dos-reis"
+},
+"domitilia_dos-reis": {
+	firstName:"Domitilia", lastName:"Dos Reis",
+	statut:"vivant",
+	sexe:"F",
+	parent1:"zeis_dos-reis"
+},
+"otilia_dos-reis": {
+	firstName:"Otilia", lastName:"Dos Reis",
+	statut:"vivant",
+	sexe:"F",
+	parent1:"zeis_dos-reis"
+},
+"oscar_dos-reis": {
+	firstName:"Oscar", lastName:"Dos Reis",
+	statut:"décédé",
+	sexe:"H",
+	parent1:"francisco_dos-reis"
+}
+};
+
+/* ------------------------------------------------------------------
+   Reconstruction automatique des "familles" (couple + enfants) à
+   partir des champs parent1/parent2 de chaque personne.
+   Tu n'as rien à modifier ici.
+   ------------------------------------------------------------------ */
+function buildFamilies(people) {
+  const groups = {};
+
+  Object.entries(people).forEach(([id, info]) => {
+    const p1 = info.parent1 || null;
+    const p2 = info.parent2 || null;
+
+    if (!p1 && !p2) return;
+
+    const key = [p1, p2]
+      .filter(Boolean)
+      .sort()
+      .join("__");
+
+    if (!groups[key]) {
+      /*
+        On garde l'ordre des parents tel qu'il est renseigné
+        dans parent1 et parent2.
+
+        Aucun ordre n'est imposé selon le sexe.
+      */
+      const parents = [p1, p2].filter(Boolean);
+
+      groups[key] = {
+        id: "fam_" + key,
+        parents,
+        children: []
+      };
+    }
+
+    groups[key].children.push(id);
+  });
+
+  return Object.values(groups);
+}
+const FAMILIES = buildFamilies(PEOPLE);
+
+/* ------------------------------------------------------------------
+   Âge et statut (vivant / décédé), calculés automatiquement
+   ------------------------------------------------------------------ */
+function parseFlexDate(str){
+  if (!str) return null;
+  if (/^\d{4}$/.test(str)) return { date: new Date(parseInt(str), 0, 1), yearOnly: true };
+  const d = new Date(str);
+  if (isNaN(d)) return null;
+  return { date: d, yearOnly: false };
+}
+function computeAge(birthDate, deathDate){
+  const b = parseFlexDate(birthDate);
+  if (!b) return null;
+  const refInfo = deathDate ? parseFlexDate(deathDate) : { date: new Date(), yearOnly: false };
+  const ref = refInfo.date;
+  let age = ref.getFullYear() - b.date.getFullYear();
+  if (!b.yearOnly && !refInfo.yearOnly) {
+    const hadBirthday = (ref.getMonth() > b.date.getMonth()) ||
+      (ref.getMonth() === b.date.getMonth() && ref.getDate() >= b.date.getDate());
+    if (!hadBirthday) age--;
+  }
+  return age;
+}
+
+function formatDateFR(str){
+  const parsed = parseFlexDate(str);
+  if(!parsed) return str;
+  if(parsed.yearOnly) return str;
+  return parsed.date.toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' });
+}
+
+function getChildrenOf(personId){
+  return Object.entries(PEOPLE)
+    .filter(([, info]) => info.parent1 === personId || info.parent2 === personId)
+    .map(([id]) => id);
+}
+
+function openPersonModal(id){
+  const info = PEOPLE[id];
+  if (!info) return;
+  const isAlive = info.statut !== "décédé";
+  const fullName = [info.firstName, info.otherFirstNames].filter(Boolean).join(' ') + ' ' + (info.lastName || '');
+
+  let html = `<h2>${fullName}${info.maidenName ? ` <span class="modal-maiden">née ${info.maidenName}</span>` : ''}</h2>`;
+  html += `<div class="modal-sub">${info.sexe === 'H' ? 'Homme' : info.sexe === 'F' ? 'Femme' : ''} · ${isAlive ? 'En vie' : 'Décédé(e)'}</div>`;
+
+  if (info.birthDate || info.deathDate) {
+    html += `<div class="modal-row"><div class="modal-label">Naissance</div><div class="modal-value">${info.birthDate ? formatDateFR(info.birthDate) : 'Inconnue'}</div></div>`;
+    if (!isAlive) {
+      html += `<div class="modal-row"><div class="modal-label">Décès</div><div class="modal-value">${info.deathDate ? formatDateFR(info.deathDate) : 'Date inconnue'}</div></div>`;
+    }
+    const age = computeAge(info.birthDate, info.deathDate);
+    if (age !== null) {
+      html += `<div class="modal-row"><div class="modal-label">${isAlive ? 'Âge' : 'Âge au décès'}</div><div class="modal-value">${age} ans</div></div>`;
+    }
+  }
+
+  const parents = [info.parent1, info.parent2].filter(p => p && PEOPLE[p]);
+  if (parents.length) {
+    html += `<div class="modal-row"><div class="modal-label">Parent${parents.length > 1 ? 's' : ''}</div><div class="modal-value">` +
+      parents.map(p => `<span class="modal-link" data-person="${p}">${PEOPLE[p].firstName} ${PEOPLE[p].lastName || ''}</span>`).join(' ') +
+      `</div></div>`;
+  }
+
+  const children = getChildrenOf(id);
+  if (children.length) {
+    html += `<div class="modal-row"><div class="modal-label">Enfant${children.length > 1 ? 's' : ''}</div><div class="modal-value">` +
+      children.map(c => `<span class="modal-link" data-person="${c}">${PEOPLE[c].firstName} ${PEOPLE[c].lastName || ''}</span>`).join(' ') +
+      `</div></div>`;
+  }
+
+  personModalContent.innerHTML = html;
+  personModalOverlay.classList.add('visible');
+
+  personModalContent.querySelectorAll('.modal-link').forEach(el => {
+    el.addEventListener('click', () => openPersonModal(el.dataset.person));
+  });
+}
+
+const personModalOverlay = document.getElementById('personModalOverlay');
+const personModalContent = document.getElementById('personModalContent');
+document.getElementById('personModalClose').addEventListener('click', () => personModalOverlay.classList.remove('visible'));
+personModalOverlay.addEventListener('click', (e) => {
+  if (e.target === personModalOverlay) personModalOverlay.classList.remove('visible');
+});
+
+/* ============================================================
+   2) MISE EN PAGE AUTOMATIQUE
+   ============================================================ */
+
+const CARD_W = 172;
+const SLOT = CARD_W + 70; // largeur allouée par personne (marge incluse)
+
+function average(values) {
+  if (!values.length) return null;
+  return values.reduce((a, b) => a + b, 0) / values.length;
+}
+
+const childFamily = {};
+FAMILIES.forEach(f => f.children.forEach(c => (childFamily[c] = f.id)));
+const parentFamilies = {};
+FAMILIES.forEach(f =>
+  f.parents.forEach(p => {
+    (parentFamilies[p] = parentFamilies[p] || []).push(f.id);
+  })
+);
+
+/*
+  Profondeur de chaque personne : ceux sans aucun parent connu sont
+  en haut (niveau 0). Un conjoint sans parent connu reste sur la même
+  ligne que son ou sa partenaire, plutôt que d'être renvoyé en haut.
+*/
+const gen = {};
+const famGen = {};
+let changed = true, iter = 0;
+while (changed && iter < 300) {
+  changed = false; iter++;
+  FAMILIES.forEach(f => {
+    const known = f.parents.map(p => gen[p]).filter(g => g !== undefined);
+    let candidate = known.length ? Math.max(...known) : undefined;
+    if (candidate === undefined && !f.parents.some(p => childFamily[p] !== undefined)) candidate = 0;
+    if (candidate !== undefined && (famGen[f.id] === undefined || candidate > famGen[f.id])) {
+      famGen[f.id] = candidate;
+      changed = true;
+    }
+    if (famGen[f.id] !== undefined) {
+      f.parents.forEach(p => {
+        if (gen[p] === undefined || gen[p] < famGen[f.id]) { gen[p] = famGen[f.id]; changed = true; }
+      });
+      f.children.forEach(c => {
+        const g = famGen[f.id] + 1;
+        if (gen[c] === undefined || gen[c] < g) { gen[c] = g; changed = true; }
+      });
+    }
+  });
+}
+Object.keys(PEOPLE).forEach(p => { if (gen[p] === undefined) gen[p] = 0; });
+const maxGen = Math.max(0, ...Object.values(gen));
+
+/*
+  Largeur de sous-arbre calculée du bas vers le haut : chaque famille
+  réserve exactement la place dont ses enfants (et leurs propres
+  descendants) ont besoin. Gère les personnes ayant plusieurs
+  conjoint·e·s en additionnant toutes leurs familles.
+*/
+const widthMemo = {};
+function familyWidth(familyId) {
+  if (widthMemo[familyId] !== undefined) return widthMemo[familyId];
+  const f = FAMILIES.find(x => x.id === familyId);
+  if (!f.children.length) { widthMemo[familyId] = 1; return 1; }
+  let total = 0;
+  f.children.forEach(c => {
+    const fams = parentFamilies[c];
+    if (fams && fams.length) total += fams.reduce((s, fid) => s + familyWidth(fid), 0);
+    else total += 1;
+  });
+  widthMemo[familyId] = Math.max(total, 1);
+  return widthMemo[familyId];
+}
+FAMILIES.forEach(f => familyWidth(f.id));
+
+/*
+  Placement top-down. Deux points clés :
+  - placedFamilies empêche qu'une famille soit positionnée deux fois
+    quand ses deux membres ont chacun leur propre ascendance connue ;
+  - pour une personne mariée plusieurs fois (famille recomposée), elle
+    reste toujours au centre, avec un·e conjoint·e de chaque côté.
+*/
+const positions = {};
+const placedFamilies = new Set();
+
+function placeChildOrFamily(personId, xStart) {
+  const fams = parentFamilies[personId];
+
+  if (fams && fams.length > 1) {
+    let cx = xStart;
+    const blockStarts = [];
+    fams.forEach(famId => { blockStarts.push(cx); cx += familyWidth(famId) * SLOT; });
+
+    const half = Math.floor(fams.length / 2);
+    const centerX = blockStarts[half] !== undefined ? blockStarts[half] : xStart;
+    if (!positions[personId]) positions[personId] = { x: centerX };
+
+    fams.forEach((famId, i) => {
+      if (placedFamilies.has(famId)) return;
+      placedFamilies.add(famId);
+      const f = FAMILIES.find(x => x.id === famId);
+      const side = i < half ? -1 : 1;
+      const rank = i < half ? (half - i) : (i - half + 1);
+      const spouse = f.parents.find(p => p !== personId);
+      if (spouse && !positions[spouse]) positions[spouse] = { x: centerX + side * 190 * rank };
+      let childCx = blockStarts[i];
+      f.children.forEach(c => { childCx += placeChildOrFamily(c, childCx) * SLOT; });
+    });
+    return (cx - xStart) / SLOT;
+  }
+
+  if (fams && fams.length === 1) {
+    const w = familyWidth(fams[0]);
+    if (!placedFamilies.has(fams[0])) placeFamily(fams[0], xStart);
+    return w;
+  }
+
+  if (!positions[personId]) positions[personId] = { x: xStart + SLOT / 2 };
+  return 1;
+}
+
+function placeFamily(familyId, xStart) {
+  if (placedFamilies.has(familyId)) return;
+  placedFamilies.add(familyId);
+  const f = FAMILIES.find(x => x.id === familyId);
+  const w = familyWidth(familyId);
+  const xCenter = xStart + (w * SLOT) / 2;
+  if (f.parents.length === 2) {
+    if (!positions[f.parents[0]]) positions[f.parents[0]] = { x: xCenter - 95 };
+    if (!positions[f.parents[1]]) positions[f.parents[1]] = { x: xCenter + 95 };
+  } else {
+    if (!positions[f.parents[0]]) positions[f.parents[0]] = { x: xCenter };
+  }
+  let cx = xStart;
+  f.children.forEach(c => { cx += placeChildOrFamily(c, cx) * SLOT; });
+}
+const rootFamilies = FAMILIES.filter(f => !f.parents.some(p => childFamily[p] !== undefined));
+let xCursor = 0;
+rootFamilies.forEach(f => {
+  const w = familyWidth(f.id);
+  placeFamily(f.id, xCursor);
+  xCursor += w * SLOT + 70;
+});
+Object.keys(PEOPLE).forEach(p => {
+  if (!positions[p]) { positions[p] = { x: xCursor + SLOT / 2 }; xCursor += SLOT; }
+});
+Object.keys(PEOPLE).forEach(p => { positions[p].depth = gen[p]; });
+
+const ROW_H = 210;
+const contentWidth = xCursor;
+const cardElements = {};
+
+function py(depthIndex) {
+  return 135 + depthIndex * ROW_H;
+}
+
+let maxX = contentWidth + 100;
+
+let contentHeight =
+  py(maxGen) + 200;
+
+
+/* ============================================================
+   3) RENDU
+   ============================================================ */
+
+const cardsEl = document.getElementById("cards");
+const labelsEl = document.getElementById("labels");
+const linksSvg = document.getElementById("links");
+
+labelsEl.innerHTML = "";
+cardsEl.innerHTML = "";
+linksSvg.innerHTML = "";
+
+
+/* ------------------------------------------------------------
+   1. Création des cartes
+   ------------------------------------------------------------ */
+
+Object.entries(PEOPLE).forEach(([id, info]) => {
+  const position = positions[id];
+  const isAlive = info.statut !== "décédé";
+
+  const card = document.createElement("div");
+
+  card.className =
+    "card " +
+    (isAlive ? "alive" : "deceased") +
+    " sexe-" +
+    (
+      info.sexe === "H" || info.sexe === "F"
+        ? info.sexe
+        : "default"
+    );
+
+  card.style.left =
+    `${position.x - CARD_W / 2}px`;
+
+  card.style.top =
+    `${py(position.depth)}px`;
+
+  const displayedFirstNames = [
+    info.firstName,
+    info.otherFirstNames
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const displayedName =
+    `${displayedFirstNames} ${info.lastName || ""}` +
+    (
+      info.maidenName
+        ? ` <i>née ${info.maidenName}</i>`
+        : ""
+    );
+
+  let dateLine = info.birthDate || "";
+
+  if (!isAlive && info.deathDate) {
+    dateLine += ` – ${info.deathDate}`;
+  }
+
+  const deceasedLabel =
+    info.sexe === "F"
+      ? "décédée"
+      : "décédé";
+
+  let ageLine = "";
+
+  if (isAlive && info.birthDate) {
+    const age = computeAge(
+      info.birthDate,
+      null
+    );
+
+    if (age !== null) {
+      ageLine = `${age} ans`;
+    }
+  } else if (
+    !isAlive &&
+    info.birthDate &&
+    info.deathDate
+  ) {
+    const age = computeAge(
+      info.birthDate,
+      info.deathDate
+    );
+
+    if (age !== null) {
+      ageLine =
+        `${deceasedLabel} à ${age} ans`;
+    }
+  } else if (!isAlive) {
+    ageLine = deceasedLabel;
+  }
+
+  card.innerHTML =
+    `<div class="nom">${displayedName}</div>` +
+    (
+      dateLine
+        ? `<div class="dates">${dateLine}</div>`
+        : ""
+    ) +
+    (
+      ageLine
+        ? `<span class="tag">${ageLine}</span>`
+        : ""
+    );
+
+  cardsEl.appendChild(card);
+  cardElements[id] = card;
+card.style.cursor = 'pointer';
+  card.addEventListener('mousedown', e => e.stopPropagation());
+  card.addEventListener('click', () => openPersonModal(id));
+});
+
+
+/* ------------------------------------------------------------
+   2. Coordonnées réelles des cartes
+   ------------------------------------------------------------ */
+
+function getCardCoordinates(personId) {
+  const card = cardElements[personId];
+
+  const left = card.offsetLeft;
+  const top = card.offsetTop;
+  const width = card.offsetWidth;
+  const height = card.offsetHeight;
+
+  return {
+    left,
+    right: left + width,
+    top,
+    bottom: top + height,
+
+    /*
+      Ces deux propriétés sont nécessaires pour calculer
+      les points d'attache décalés des familles recomposées.
+    */
+    width,
+    height,
+
+    centerX: left + width / 2,
+    centerY: top + height / 2,
+
+    topAnchor: top + 1,
+    bottomAnchor: top + height - 1
+  };
+}
+
+
+/* ------------------------------------------------------------
+   3. Connecteurs exacts des familles
+   ------------------------------------------------------------ */
+
+function drawFamilyLinks() {
+  let svgHtml = "";
+
+  const layouts = FAMILIES
+    .filter(family => family.parents.length > 0 && family.children.length > 0)
+    .map(family => {
+      const parents = family.parents.filter(parentId => cardElements[parentId]);
+      const children = family.children
+        .filter(childId => cardElements[childId])
+        .sort((a, b) => positions[a].x - positions[b].x);
+
+      if (!parents.length || !children.length) return null;
+
+      const parentCoords = parents.map(getCardCoordinates);
+      const childCoords = children.map(getCardCoordinates);
+
+      const familyCenterX =
+        parentCoords.length === 2
+          ? average(parentCoords.map(p => p.centerX))
+          : parentCoords[0].centerX;
+
+      const parentBottom = Math.max(...parentCoords.map(p => p.bottomAnchor));
+
+      return { parentCoords, childCoords, familyCenterX, parentBottom };
+    })
+    .filter(Boolean);
+
+  layouts.forEach(layout => {
+    const { parentCoords, childCoords, familyCenterX, parentBottom } = layout;
+    const parentJoinY = parentBottom + 20;
+
+// trait(s) entre les parents + point de jonction familial
+    if (parentCoords.length === 2) {
+      const [p0, p1] = parentCoords;
+      // une légère courbe (et non une ligne droite) évite que deux
+      // couples voisins et alignés (ex: Anna-Jean puis Jean-Myriam)
+      // se confondent visuellement en une seule ligne continue.
+      // Le point milieu est calculé à partir de la vraie courbe de
+      // Bézier, pas d'une simple moyenne, pour rester juste même si
+      // les deux cartes du couple n'ont pas la même hauteur.
+      const dip = 9;
+      const controlY = (p0.centerY + p1.centerY) / 2 + dip;
+      const curveMidY = (p0.centerY + 2 * controlY + p1.centerY) / 4;
+      svgHtml += `
+        <path
+          d="M ${p0.centerX} ${p0.centerY}
+             Q ${familyCenterX} ${controlY}, ${p1.centerX} ${p1.centerY}"
+          fill="none" stroke="var(--line)" stroke-width="1.6" stroke-linecap="round"
+        />
+        <circle cx="${familyCenterX}" cy="${curveMidY}" r="3.5" fill="var(--accent)" />
+        <path d="M ${familyCenterX} ${curveMidY} L ${familyCenterX} ${parentJoinY}" fill="none" stroke="var(--line)" stroke-width="1.6" stroke-linecap="round" />
+      `;
+    } else {
+      svgHtml += `
+        <path d="M ${familyCenterX} ${parentCoords[0].bottomAnchor} L ${familyCenterX} ${parentJoinY}" fill="none" stroke="var(--line)" stroke-width="1.6" stroke-linecap="round" />
+      `;
+    }
+
+    // chaque enfant reçoit SA PROPRE courbe individuelle depuis le point
+    // de jonction familial. Plus aucune barre horizontale partagée qui
+    // pourrait laisser croire que deux familles différentes sont reliées.
+    childCoords.forEach(child => {
+      const midY = (parentJoinY + child.topAnchor) / 2;
+      svgHtml += `
+        <path
+          d="M ${familyCenterX} ${parentJoinY}
+             C ${familyCenterX} ${midY}, ${child.centerX} ${midY}, ${child.centerX} ${child.topAnchor}"
+          fill="none" stroke="var(--line)" stroke-width="1.6" stroke-linecap="round"
+        />
+        <circle cx="${child.centerX}" cy="${child.topAnchor}" r="3" fill="var(--accent)" />
+      `;
+    });
+  });
+
+  linksSvg.innerHTML = svgHtml;
+
+  const cardBottoms = Object.keys(cardElements).map(
+    personId => getCardCoordinates(personId).bottom
+  );
+  contentHeight = Math.max(...cardBottoms) + 100;
+
+  linksSvg.setAttribute("width", maxX);
+  linksSvg.setAttribute("height", contentHeight);
+}
+
+/* ------------------------------------------------------------
+   4. Tracé après chargement réel des polices
+   ------------------------------------------------------------ */
+
+function refreshTreeConnections(fitView = false) {
+  requestAnimationFrame(() => {
+    drawFamilyLinks();
+
+    if (fitView) {
+      requestAnimationFrame(() => {
+        document
+          .getElementById("fit")
+          .click();
+      });
+    }
+  });
+}
+
+if (document.fonts && document.fonts.ready) {
+  document.fonts.ready.then(() => {
+    refreshTreeConnections(true);
+  });
+} else {
+  window.addEventListener("load", () => {
+    refreshTreeConnections(true);
+  });
+}
+
+let resizeTimer;
+
+window.addEventListener("resize", () => {
+  clearTimeout(resizeTimer);
+
+  resizeTimer = setTimeout(() => {
+    refreshTreeConnections(false);
+  }, 100);
+});
+
+/* ============================================================
+   4) PAN / ZOOM
+   ============================================================ */
+const stage = document.getElementById('stage');
+const viewport = document.getElementById('viewport');
+let scale = 1, panX = 60, panY = 60;
+let dragging = false, lastX = 0, lastY = 0;
+
+function applyTransform(){
+  viewport.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+}
+
+stage.addEventListener('mousedown', e => {
+  dragging = true; stage.classList.add('dragging');
+  lastX = e.clientX; lastY = e.clientY;
+});
+window.addEventListener('mouseup', () => { dragging = false; stage.classList.remove('dragging'); });
+window.addEventListener('mousemove', e => {
+  if (!dragging) return;
+  panX += e.clientX - lastX; panY += e.clientY - lastY;
+  lastX = e.clientX; lastY = e.clientY;
+  applyTransform();
+});
+stage.addEventListener('wheel', e => {
+  e.preventDefault();
+  const rect = stage.getBoundingClientRect();
+  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  const worldX = (mx - panX) / scale, worldY = (my - panY) / scale;
+  const delta = e.deltaY < 0 ? 1.08 : 0.93;
+  scale = Math.min(2.5, Math.max(0.25, scale * delta));
+  panX = mx - worldX * scale; panY = my - worldY * scale;
+  applyTransform();
+}, { passive:false });
+
+document.getElementById('zoomIn').onclick = () => { scale = Math.min(2.5, scale*1.15); applyTransform(); };
+document.getElementById('zoomOut').onclick = () => { scale = Math.max(0.25, scale*0.87); applyTransform(); };
+document.getElementById('fit').onclick = () => {
+  const availW = stage.clientWidth - 80;
+  const availH = stage.clientHeight - 80;
+
+  const contentW = maxX;
+  const contentH = contentHeight;
+
+  scale = Math.min(
+    availW / contentW,
+    availH / contentH,
+    1.2
+  );
+
+  panX = 60;
+  panY = 60;
+
+  applyTransform();
+};
+
+</script>
+</body>
+</html>
