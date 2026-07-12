@@ -321,6 +321,7 @@ jacques_duval: {
 	firstName:"Jacques", lastName:"Duval",
 	statut:"décédé",
 	sexe:"H",
+	birthDate: "1940-07-19", deathDate:"2002-01-18",
 	parent1:"georges_duval", parent2:"jeanne_oliva"
 },
 danièle_duval: {
@@ -329,18 +330,61 @@ danièle_duval: {
 	sexe:"F",
 	parent1:"georges_duval", parent2:"jeanne_oliva"
 },
-george_duval: {
-	firstName:"Georges", lastName:"Duval",
+georges_duval: {
+	firstName:"Georges", otherFirstNames:"Laurent", lastName:"Duval",
 	statut: "décédé",
-	sexe:"H"
+	birthDate:"1919-03-05", deathDate:"1980-09-14",
+	sexe:"H",
+	parent1:"roger_duval", parent2:"noela_benoit",
+	spouse:"marie-jeanne_bordes"
+},
+robert_duval: {
+	firstName:"Robert", otherFirstNames:"René Raymond", lastName:"Duval",
+	statut: "décédé",
+	sexe:"H",
+	parent1:"roger_duval", parent2:"noela_benoit"
+},
+raymond_duval: {
+	firstName:"Raymond", lastName:"Duval",
+	statut: "décédé",
+	sexe:"H",
+	parent1:"robert_duval"
+},
+renée_duval: {
+	firstName:"Renée", lastName:"Duval",
+	statut: "décédé",
+	sexe:"F",
+	parent1:"roger_duval", parent2:"noela_benoit"
+},
+roger_duval: {
+	firstName:"Roger", otherFirstNames:"Oscar", lastName:"Duval",
+	statut: "décédé",
+	birthDate:"1891-09-11", deathDate:"1960-06-24",
+	sexe:"H",
+	parent1:"louis_duval", parent2:"camille_mulot"
+},
+louis_duval: {
+	firstName:"Louis", otherFirstNames:"Auguste, Oscar", lastName:"Duval",
+	statut:"décédé", birthDate:"1862-12-06", deathDate:"1945", sexe:"H",
+	parent1:"alfred_duval", parent2:"josephine_lalieu"
+},
+camille_mulot: {
+	firstName:"Camille", otherFirstNames:"Blanche", lastName:"Mulot",
+	statut:"décédé", birthDate:"1850-01-29", sexe:"F",
+	parent1:"barthelemy_mulot", parent2:"euphrasie_petit"
+},
+noela_benoit: {
+	firstName:"Noela", otherFirstNames:"Marie, Louise", lastName:"Dary Benoit",
+	statut:"décédé", birthDate:"1890-09-09", sexe:"F",
+	parent1:"alphonse_benoit", parent2:"marie_rolland"
 },
 jeanne_oliva: {
-	firstName:"Jeanne", lastName:"Oliva",
+	firstName:"Jeanne", otherFirstNames:"Louise", lastName:"Oliva",
 	statut: "décédé",
 	sexe:"F"
 },
 joséphine_dewaele: {
-	firstName:"Joséphine", lastName:"Dewaele",
+	firstName:"Joséphine", otherFirstNames:"Nelly", lastName:"Dewaele",
 	statut:"vivant",
 	birthDate:"1942-10-20",
 	sexe:"F"
@@ -373,6 +417,7 @@ laura_debard: {
 	firstName:"Firmino jr", lastName:"Correia Pereira",
 	statut:"décédé",
 	sexe:"H",
+	birthDate:"1941-12-12", deathDate:"2023-01-16",
 	parent1:"firmino_pereira", parent2:"rosa_dos-santos"
 },
 firmino_pereira: {
@@ -746,6 +791,381 @@ joe_jr_ferreira: {
 	statut:"décédé",
 	sexe:"H",
 	parent1:"francisco_dos-reis"
+},
+charles_duval_1: {
+	firstName:"Charles", otherFirstNames:"Baltazard", lastName:"Duval",
+	statut:"décédé", birthDate:"1776", sexe:"H"
+},
+"marie-louise_delafosse": {
+	firstName:"Marie-Louise", otherFirstNames:"Victoire", lastName:"Delafosse",
+	statut:"décédé", sexe:"F"
+},
+desire_boucher: {
+	firstName:"Désiré", lastName:"Boucher",
+	statut:"décédé", birthDate:"1784", sexe:"H"
+},
+josephine_delafosse: {
+	firstName:"Joséphine", lastName:"Delafosse",
+	statut:"décédé", birthDate:"1791", sexe:"F"
+},
+charles_duval_2: {
+	firstName:"Charles", otherFirstNames:"Adolphe", lastName:"Duval",
+	statut:"décédé", birthDate:"1811-05-12", deathDate:"1849-08-09", sexe:"H",
+	parent1:"charles_duval_1", parent2:"marie-louise_delafosse"
+},
+"florentine-victoire_boucher": {
+	firstName:"Florentine", otherFirstNames:"Victoire", lastName:"Boucher",
+	statut:"décédé", deathDate:"1840-06-08", sexe:"F",
+	parent1:"desire_boucher", parent2:"josephine_delafosse"
+},
+jean_lalieu: {
+	firstName:"Jean", otherFirstNames:"Théodore", lastName:"Lalieu",
+	statut:"décédé", birthDate:"1820", sexe:"H"
+},
+catherine_hubert: {
+	firstName:"Catherine", lastName:"Hubert",
+	statut:"décédé", birthDate:"1823", sexe:"F"
+},
+barthelemy_mulot: {
+	firstName:"Barthélemy", otherFirstNames:"Juste, Séraphin", lastName:"Mulot",
+	statut:"décédé", sexe:"H"
+},
+euphrasie_petit: {
+	firstName:"Euphrasie", otherFirstNames:"Aimée", lastName:"Petit",
+	statut:"décédé", sexe:"F"
+},
+alfred_duval: {
+	firstName:"Alfred", otherFirstNames:"Charles, Désiré", lastName:"Duval",
+	statut:"décédé", birthDate:"1840-04-03", sexe:"H",
+	parent1:"charles_duval_2", parent2:"florentine-victoire_boucher"
+},
+josephine_lalieu: {
+	firstName:"Joséphine", otherFirstNames:"Philomène", lastName:"Lalieu",
+	statut:"décédé", birthDate:"1843-02-09", sexe:"F",
+	parent1:"jean_lalieu", parent2:"catherine_hubert"
+},
+alphonse_benoit: {
+	firstName:"Alphonse", lastName:"Benoit",
+	statut:"décédé", birthDate:"1853", sexe:"H"
+},
+marie_rolland: {
+	firstName:"Marie", otherFirstNames:"Philomène", lastName:"Rolland",
+	statut:"décédé", birthDate:"1863", sexe:"F"
+},
+marguerite_duval: {
+	firstName:"Marguerite", lastName:"Duval",
+	statut:"décédé", sexe:"F",
+	parent1:"alfred_duval", parent2:"josephine_lalieu",
+	spouse:"j_poirrier"
+},
+j_poirrier: {
+	firstName:"J", lastName:"Poirrier",
+	statut:"décédé", sexe:"H"
+},
+alice_poirrier: {
+	firstName:"Alice", lastName:"Poirrier",
+	statut:"décédé", sexe:"F",
+	parent1:"j_poirrier", parent2:"marguerite_duval"
+},
+robert_poirrier: {
+	firstName:"Robert", lastName:"Poirrier",
+	statut:"décédé", sexe:"H",
+	parent1:"j_poirrier", parent2:"marguerite_duval"
+},
+"marie-jeanne_bordes": {
+	firstName:"Marie-Jeanne", lastName:"Bordes",
+	statut:"décédé", birthDate:"1925-01-17", deathDate:"1999-05-28", sexe:"F",
+	parent1:"alexandre_bordes", parent2:"rose-jeanne-jacinthe_madriles"
+},
+philippe_duval: {
+	firstName:"Philippe", lastName:"Duval",
+	statut:"vivant", sexe:"H",
+	parent1:"georges_duval", parent2:"marie-jeanne_bordes",
+	spouse:"colette_grenet"
+},
+colette_grenet: {
+	firstName:"Colette", lastName:"Grenet",
+	statut:"vivant", sexe:"F"
+},
+orianne_duval: {
+	firstName:"Orianne", lastName:"Duval",
+	statut:"vivant", sexe:"F",
+	parent1:"philippe_duval", parent2:"colette_grenet",
+	spouse:"fabrice_garcin"
+},
+fabrice_garcin: {
+	firstName:"Fabrice", lastName:"Garcin",
+	statut:"vivant", sexe:"H"
+},
+frederic_duval: {
+	firstName:"Frédéric", lastName:"Duval",
+	statut:"vivant", sexe:"H",
+	parent1:"philippe_duval", parent2:"colette_grenet"
+},
+louca_garcin: {
+	firstName:"Louca", lastName:"Garcin",
+	statut:"vivant", sexe:"H",
+	parent1:"orianne_duval", parent2:"fabrice_garcin"
+},
+ambre_garcin: {
+	firstName:"Ambre", lastName:"Garcin",
+	statut:"vivant", sexe:"F",
+	parent1:"orianne_duval", parent2:"fabrice_garcin"
+},
+didier_duval: {
+	firstName:"Didier", otherFirstNames:"Patrick, Gilbert", lastName:"Duval",
+	statut:"vivant", sexe:"H",
+	parent1:"georges_duval", parent2:"marie-jeanne_bordes",
+	spouse:"isabelle_mariani"
+},
+isabelle_mariani: {
+	firstName:"Isabelle", lastName:"Mariani",
+	statut:"vivant", sexe:"F"
+},
+alexandre_duval: {
+	firstName:"Alexandre", lastName:"Duval",
+	statut:"vivant", sexe:"H",
+	parent1:"didier_duval", parent2:"isabelle_mariani"
+},
+thibaut_duval: {
+	firstName:"Thibaut", lastName:"Duval",
+	statut:"vivant", sexe:"H",
+	parent1:"didier_duval", parent2:"isabelle_mariani"
+},
+christine_demougeot: {
+	firstName:"Christine", lastName:"Demougeot",
+	statut:"vivant", sexe:"F",
+	spouse:"didier_duval"
+},
+antoine_duval: {
+	firstName:"Antoine", lastName:"Duval",
+	statut:"vivant", sexe:"H",
+	parent1:"didier_duval", parent2:"christine_demougeot"
+},
+sophie_inconnu: {
+	firstName:"Sophie", lastName:"",
+	statut:"vivant", sexe:"F",
+	spouse:"didier_duval"
+},
+oscar_duval: {
+	firstName:"Oscar", lastName:"Duval",
+	statut:"vivant", sexe:"H",
+	parent1:"didier_duval", parent2:"sophie_inconnu"
+},
+jeannette_mouneyar: {
+	firstName:"Jeannette", otherFirstNames:"Fouad", lastName:"Mouneyar",
+	statut:"décédé", sexe:"F"
+},
+pierre_bordes: {
+	firstName:"Pierre", lastName:"Bordes",
+	statut:"décédé", deathDate:"1850",
+	sexe:"H"
+},
+anne_gastou: {
+	firstName:"Anne", lastName:"Gastou",
+	statut:"décédé", deathDate:"1858",
+	sexe:"F"
+},
+baptiste_bordes: {
+	firstName:"Baptiste", lastName:"Bordes",
+	statut:"décédé", birthDate:"1815",
+	sexe:"H",
+	parent1:"pierre_bordes", parent2:"anne_gastou"
+},
+jeanne_pouech: {
+	firstName:"Jeanne", lastName:"Pouech",
+	statut:"décédé", birthDate:"1819",
+	sexe:"F"
+},
+alexandrine_bastou: {
+	firstName:"Alexandrine", lastName:"Bastou",
+	statut:"décédé", birthDate:"1821", deathDate:"1854",
+	sexe:"F"
+},
+baptistine_bordes: {
+	firstName:"Baptistine", lastName:"Bordes",
+	statut:"décédé", birthDate:"1861", deathDate:"1883",
+	sexe:"F",
+	parent1:"baptiste_bordes", parent2:"jeanne_pouech"
+},
+"jean-pierre_bordes": {
+	firstName:"Jean-Pierre", lastName:"Bordes",
+	statut:"décédé",
+	sexe:"H",
+	parent1:"baptiste_bordes", parent2:"jeanne_pouech"
+},
+marie_bordes: {
+	firstName:"Marie", lastName:"Bordes",
+	statut:"décédé", birthDate:"1842",
+	sexe:"F",
+	parent1:"baptiste_bordes", parent2:"alexandrine_bastou"
+},
+virginie_bordes: {
+	firstName:"Virginie", lastName:"Bordes",
+	statut:"décédé",
+	sexe:"F",
+	parent1:"baptiste_bordes", parent2:"alexandrine_bastou"
+},
+"marie-eugenie-pauline_bordes": {
+	firstName:"Marie", otherFirstNames:"Eugénie Pauline", lastName:"Bordes",
+	statut:"décédé", birthDate:"1880", deathDate:"1902",
+	sexe:"F",
+	parent1:"baptistine_bordes"
+},
+jean_pennavaire_1: {
+	firstName:"Jean", lastName:"Pennavaire",
+	statut:"décédé",
+	sexe:"H"
+},
+magdelaine_fons: {
+	firstName:"Magdelaine", lastName:"Fons",
+	statut:"décédé",
+	sexe:"F"
+},
+joseph_pennavaire: {
+	firstName:"Joseph", lastName:"Pennavaire",
+	statut:"décédé", birthDate:"1777",
+	sexe:"H",
+	parent1:"jean_pennavaire_1", parent2:"magdelaine_fons"
+},
+anne_pages: {
+	firstName:"Anne", lastName:"Pages",
+	statut:"décédé", birthDate:"1777",
+	sexe:"F"
+},
+raymond_pennavaire: {
+	firstName:"Raymond", lastName:"Pennavaire",
+	statut:"décédé", birthDate:"1813",
+	sexe:"H",
+	parent1:"joseph_pennavaire", parent2:"anne_pages"
+},
+rose_labadie: {
+	firstName:"Rose", lastName:"Labadie",
+	statut:"décédé", birthDate:"1818",
+	sexe:"F"
+},
+isaac_pennavaire: {
+	firstName:"Isaac", lastName:"Pennavaire",
+	statut:"décédé", birthDate:"1842", deathDate:"1909",
+	sexe:"H",
+	parent1:"raymond_pennavaire", parent2:"rose_labadie"
+},
+"rose-alexandrine_pennavaire_1": {
+	firstName:"Rose", otherFirstNames:"Alexandrine", lastName:"Pennavaire",
+	statut:"décédé", birthDate:"1865",
+	sexe:"F",
+	parent1:"raymond_pennavaire", parent2:"rose_labadie"
+},
+louis_pennavaire_1: {
+	firstName:"Louis", lastName:"Pennavaire",
+	statut:"décédé", birthDate:"1873", deathDate:"1940", sexe:"H",
+	parent1:"raymond_pennavaire", parent2:"rose_labadie"
+},
+"jean-baptiste_pennavaire": {
+	firstName:"Jean-Baptiste", lastName:"Pennavaire", statut:"décédé", birthDate:"1870", sexe:"H",
+	parent1:"isaac_pennavaire", parent2:"marie_bordes"
+},
+"marie-francoise_marty": {
+	firstName:"Marie-Françoise", lastName:"Marty", statut:"décédé", birthDate:"1876", sexe:"F"
+},
+barthelemy_pennavaire: {
+	firstName:"Barthélémy", lastName:"Pennavaire", statut:"décédé", sexe:"H",
+	parent1:"jean-baptiste_pennavaire", parent2:"marie-francoise_marty"
+},
+marius_pennavaire_2: {
+	firstName:"Marius", lastName:"Pennavaire", statut:"décédé", sexe:"H",
+	parent1:"jean-baptiste_pennavaire", parent2:"marie-francoise_marty"
+},
+paule_bautes: {
+	firstName:"Paule", lastName:"Bautes", statut:"décédé", sexe:"F"
+},
+jean_pennavaire_2: {
+	firstName:"Jean", lastName:"Pennavaire", statut:"vivant", birthDate:"1924", sexe:"H",
+	parent1:"marius_pennavaire_2", parent2:"paule_bautes"
+},
+paulette_larquat: {
+	firstName:"Paulette", lastName:"Larquat", statut:"vivant", sexe:"F"
+},
+bernadette_pennavaire: {
+	firstName:"Bernadette", lastName:"Pennavaire", statut:"vivant", sexe:"F",
+	parent1:"jean_pennavaire_2", parent2:"paulette_larquat"
+},
+pierre_pennavaire: {
+	firstName:"Pierre", lastName:"Pennavaire", statut:"vivant", sexe:"H",
+	parent1:"marius_pennavaire_2", parent2:"paule_bautes"
+},
+andre_pennavaire: {
+	firstName:"André", lastName:"Pennavaire", statut:"vivant", sexe:"H",
+	parent1:"marius_pennavaire_2", parent2:"paule_bautes"
+},
+monique_reverdy: {
+	firstName:"Monique", lastName:"Reverdy", statut:"vivant", sexe:"F"
+},
+alain_pennavaire: {
+	firstName:"Alain", lastName:"Pennavaire", statut:"vivant", sexe:"H",
+	parent1:"andre_pennavaire", parent2:"monique_reverdy"
+},
+christophe_pennavaire: {
+	firstName:"Christophe", lastName:"Pennavaire", statut:"vivant", sexe:"H",
+	parent1:"alain_pennavaire"
+},
+louis_pennavaire_2: {
+	firstName:"Louis", lastName:"Pennavaire", statut:"décédé", sexe:"H",
+	parent1:"isaac_pennavaire", parent2:"marie_bordes"
+},
+"rose-alexandrine_pennavaire_2": {
+	firstName:"Rose", otherFirstNames:"Alexandrine", lastName:"Pennavaire", statut:"décédé", sexe:"F",
+	parent1:"isaac_pennavaire", parent2:"marie_bordes"
+},
+marius_pennavaire_1: {
+	firstName:"Marius", lastName:"Pennavaire", statut:"décédé", birthDate:"1873", sexe:"H",
+	parent1:"isaac_pennavaire", parent2:"marie_bordes"
+},
+marguerite_taudou: {
+	firstName:"Marguerite", lastName:"Taudou", statut:"décédé", sexe:"F",
+	spouse:"marius_pennavaire_1"
+},
+francisco_madriles: {
+	firstName:"Francisco", lastName:"Madriles", statut:"décédé", sexe:"H"
+},
+maria_oliva: {
+	firstName:"Maria", lastName:"Oliva", statut:"décédé", sexe:"F"
+},
+"rose-jeanne-jacinthe_madriles": {
+	firstName:"Rose", otherFirstNames:"Jeanne, Jacinthe", lastName:"Madriles", statut:"décédé", sexe:"F",
+	parent1:"francisco_madriles", parent2:"maria_oliva"
+},
+"asuncion_madriles-oliva": {
+	firstName:"Asuncion", lastName:"Madriles-Oliva", statut:"décédé", sexe:"F",
+	parent1:"francisco_madriles", parent2:"maria_oliva"
+},
+"francisca_madriles-oliva": {
+	firstName:"Francisca", lastName:"Madriles-Oliva", statut:"décédé", sexe:"F",
+	parent1:"francisco_madriles", parent2:"maria_oliva",
+	spouse:"jose_arenas-mateou"
+},
+"jose_arenas-mateou": {
+	firstName:"José", lastName:"Arenas-Mateou", statut:"décédé", sexe:"H"
+},
+francisco_madriles_fils: {
+	firstName:"Francisco", lastName:"Madriles-Oliva", statut:"décédé", sexe:"H",
+	parent1:"francisco_madriles", parent2:"maria_oliva"
+},
+alexandre_bordes: {
+	firstName:"Alexandre", lastName:"Bordes", statut:"décédé", birthDate:"1899", sexe:"H",
+	parent1:"marius_pennavaire_1", parent2:"marie-eugenie-pauline_bordes"
+},
+andree_bordes: {
+	firstName:"Andrée", lastName:"Bordes", statut:"vivant", sexe:"F",
+	parent1:"alexandre_bordes", parent2:"rose-jeanne-jacinthe_madriles"
+},
+joseph_bordes: {
+	firstName:"Joseph", lastName:"Bordes", statut:"vivant", sexe:"H",
+	parent1:"alexandre_bordes", parent2:"rose-jeanne-jacinthe_madriles"
+},
+louis_bordes: {
+	firstName:"Louis", lastName:"Bordes", statut:"vivant", sexe:"H",
+	parent1:"alexandre_bordes", parent2:"rose-jeanne-jacinthe_madriles"
 }
 };
 
