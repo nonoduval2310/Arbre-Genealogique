@@ -328,6 +328,30 @@ joséphine_dewaele: {
 	birthDate:"1942-10-20",
 	sexe:"F"
 },
+marc_duval: {
+	firstName: "Marc", lastName: "Duval",
+	statut: vivant,
+	sexe: H,
+	parent1:"jacques_duval", parent2:"joséphine_dewaele"
+},
+christine_duval: {
+	firstName: "Christine", lastName: "Duval",
+	statut: vivant,
+	sexe: F,
+	parent1:"jacques_duval", parent2:"joséphine_dewaele"
+},
+florian_duval: {
+	firstName: "Florian", lastName: "Duval",
+	statut: vivant,
+	sexe: H,
+	parent1:"christine_duval"
+},
+laura_duval: {
+	firstName: "Laura", lastName: "Duval",
+	statut: vivant,
+	sexe: F,
+	parent1:"christine_duval"
+},
 "firmino-jr_pereira": {
 	firstName:"Firmino jr", lastName:"Correia Pereira",
 	statut:"décédé",
@@ -800,6 +824,21 @@ function getChildrenOf(personId){
     .map(([id]) => id);
 }
 
+function getSiblingsOf(personId){
+  const info = PEOPLE[personId];
+  if (!info) return [];
+  const parents = [info.parent1, info.parent2].filter(Boolean);
+  if (!parents.length) return [];
+  const siblings = new Set();
+  Object.entries(PEOPLE).forEach(([id, other]) => {
+    if (id === personId) return;
+    if ((other.parent1 && parents.includes(other.parent1)) || (other.parent2 && parents.includes(other.parent2))) {
+      siblings.add(id);
+    }
+  });
+  return [...siblings];
+}
+
 function openPersonModal(id){
   const info = PEOPLE[id];
   if (!info) return;
@@ -824,6 +863,13 @@ function openPersonModal(id){
   if (parents.length) {
     html += `<div class="modal-row"><div class="modal-label">Parent${parents.length > 1 ? 's' : ''}</div><div class="modal-value">` +
       parents.map(p => `<span class="modal-link" data-person="${p}">${PEOPLE[p].firstName} ${PEOPLE[p].lastName || ''}</span>`).join(' ') +
+      `</div></div>`;
+  }
+	
+	const siblings = getSiblingsOf(id);
+	if (siblings.length) {
+    html += `<div class="modal-row"><div class="modal-label">Frère${siblings.length > 1 ? 's' : ''} et sœur${siblings.length > 1 ? 's' : ''}</div><div class="modal-value">` +
+      siblings.map(s => `<span class="modal-link" data-person="${s}">${PEOPLE[s].firstName} ${PEOPLE[s].lastName || ''}</span>`).join(' ') +
       `</div></div>`;
   }
 
